@@ -1,4 +1,12 @@
-import { Plugin } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+
+interface FullscreenImageSettings {
+  trueFullscreen: boolean;
+}
+
+const DEFAULT_SETTINGS: FullscreenImageSettings = {
+  trueFullscreen: true
+};
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
@@ -39,12 +47,20 @@ class ImageViewer {
   private lastTapPos: Point = { x: 0, y: 0 };
   private pendingSingleTap: number | null = null;
 
-  constructor(sourceImg: HTMLImageElement, onClosed: () => void) {
+  private readonly boundedContainer: HTMLElement | null;
+
+  constructor(sourceImg: HTMLImageElement, trueFullscreen: boolean, onClosed: () => void) {
     this.onClosed = onClosed;
+    this.boundedContainer = trueFullscreen
+      ? null
+      : sourceImg.closest<HTMLElement>('.workspace-split.mod-root')
+        ?? sourceImg.closest<HTMLElement>('.workspace-tabs')
+        ?? null;
 
     this.overlay = document.body.createDiv({ cls: 'fsi-overlay' });
     this.overlay.setAttribute('role', 'dialog');
     this.overlay.setAttribute('aria-modal', 'true');
+    this.positionOverlay();
 
     this.img = this.overlay.createEl('img', { cls: 'fsi-img' });
     this.img.src = sourceImg.currentSrc || sourceImg.src;
@@ -92,6 +108,9 @@ class ImageViewer {
     this.img.addEventListener('pointercancel', this.onPointerUp);
 
     document.addEventListener('keydown', this.onKeyDown);
+    if (this.boundedContainer) {
+      window.addEventListener('resize', this.onWindowResize);
+    }
   }
 
   close(): void {
@@ -100,9 +119,28 @@ class ImageViewer {
       this.pendingSingleTap = null;
     }
     document.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('resize', this.onWindowResize);
     this.overlay.remove();
     this.onClosed();
   }
+
+  private positionOverlay(): void {
+    if (!this.boundedContainer) {
+      this.overlay.setCssStyles({ top: '0', left: '0', width: '100%', height: '100%' });
+      return;
+    }
+    const rect = this.boundedContainer.getBoundingClientRect();
+    this.overlay.setCssStyles({
+      top: `${rect.top}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      height: `${rect.height}px`
+    });
+  }
+
+  private readonly onWindowResize = (): void => {
+    this.positionOverlay();
+  };
 
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') this.close();
@@ -245,15 +283,23 @@ class ImageViewer {
 }
 
 export default class FullscreenImagePlugin extends Plugin {
+  settings: FullscreenImageSettings = DEFAULT_SETTINGS;
   private activeViewer: ImageViewer | null = null;
 
-  onload(): void {
+  async onload(): Promise<void> {
+    const stored = (await this.loadData()) as Partial<FullscreenImageSettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, stored);
+    this.addSettingTab(new FullscreenImageSettingTab(this.app, this));
     this.registerDomEvent(document, 'click', this.handleDocumentClick.bind(this));
   }
 
   onunload(): void {
     this.activeViewer?.close();
     this.activeViewer = null;
+  }
+
+  async saveSettings(): Promise<void> {
+    await this.saveData(this.settings);
   }
 
   private handleDocumentClick(evt: MouseEvent): void {
@@ -267,8 +313,29 @@ export default class FullscreenImagePlugin extends Plugin {
     if (!img.closest('.workspace-leaf-content')) return;
 
     evt.preventDefault();
-    this.activeViewer = new ImageViewer(img, () => {
+    this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, () => {
       this.activeViewer = null;
     });
+  }
+}
+
+class FullscreenImageSettingTab extends PluginSettingTab {
+  constructor(app: App, private readonly plugin: FullscreenImagePlugin) {
+    super(app, plugin);
+  }
+
+  display(): void {
+    const { containerEl } = this;
+    containerEl.empty();
+
+    new Setting(containerEl)
+      .setName('True fullscreen')
+      .setDesc('Expand images to cover the entire window. Turn off to bound the expanded view to the note area, leaving sidebars visible.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.trueFullscreen)
+        .onChange(async (value) => {
+          this.plugin.settings.trueFullscreen = value;
+          await this.plugin.saveSettings();
+        }));
   }
 }

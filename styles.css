@@ -1,7 +1,11 @@
+.workspace-leaf-content img {
+  cursor: zoom-in;
+}
+
 .fsi-overlay {
   position: fixed;
-  inset: 0;
   z-index: 9999;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +24,7 @@
   height: 100%;
   object-fit: contain;
   touch-action: none;
-  cursor: zoom-in;
+  cursor: zoom-out;
   transform-origin: center center;
   user-select: none;
   -webkit-user-drag: none;
@@ -31,7 +35,7 @@
 }
 
 .fsi-close {
-  position: fixed;
+  position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
   right: calc(env(safe-area-inset-right, 0px) + 12px);
   width: 44px;
@@ -53,7 +57,7 @@
 }
 
 .fsi-controls {
-  position: fixed;
+  position: absolute;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
   left: 50%;
   transform: translateX(-50%);
