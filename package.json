@@ -1,0 +1,34 @@
+{
+  "name": "fullscreen-image",
+  "version": "0.1.0",
+  "description": "Click any image to expand it fullscreen, with pinch, wheel, and button zoom plus drag to pan.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit -p tsconfig.json && node esbuild.config.mjs production",
+    "lint": "eslint src/**/*.ts",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "image",
+    "fullscreen",
+    "zoom",
+    "lightbox",
+    "modal"
+  ],
+  "author": "Robert Fleming",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-obsidianmd": "^0.4.0",
+    "globals": "^17.6.0",
+    "obsidian": "latest",
+    "typescript": "^5.5.0"
+  }
+}
