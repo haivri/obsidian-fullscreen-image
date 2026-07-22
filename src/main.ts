@@ -110,6 +110,7 @@ class ImageViewer {
     });
 
     this.img.addEventListener('click', (e) => e.stopPropagation());
+    this.img.addEventListener('load', this.onImageLoad);
     this.img.addEventListener('pointerdown', this.onPointerDown);
     this.img.addEventListener('pointermove', this.onPointerMove);
     this.img.addEventListener('pointerup', this.onPointerUp);
@@ -153,6 +154,13 @@ class ImageViewer {
     this.applyTransform();
   };
 
+  private readonly onImageLoad = (): void => {
+    // Natural dimensions are only available after load. Reapply the bounds then,
+    // so portrait and landscape images both remain stable from their first zoom.
+    this.clampPan();
+    this.applyTransform();
+  };
+
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -169,15 +177,29 @@ class ImageViewer {
 
   private readonly onWheel = (e: WheelEvent): void => {
     e.preventDefault();
-    this.setScale(this.scale - e.deltaY * 0.0015 * this.scale);
+    this.setScale(this.scale - e.deltaY * 0.0015 * this.scale, { x: e.clientX, y: e.clientY });
   };
 
   private zoomBy(delta: number): void {
     this.setScale(this.scale + delta);
   }
 
-  private setScale(nextScale: number): void {
+  private setScale(nextScale: number, focalPoint?: Point): void {
+    const previousScale = this.scale;
     this.scale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
+
+    if (focalPoint && this.scale !== previousScale) {
+      // Preserve the part of the image directly under the mouse or pinch center.
+      // This prevents the image from drifting toward the viewport center mid-gesture.
+      const rect = this.overlay.getBoundingClientRect();
+      const focalX = focalPoint.x - rect.left - rect.width / 2;
+      const focalY = focalPoint.y - rect.top - rect.height / 2;
+      const imageX = (focalX - this.tx) / previousScale;
+      const imageY = (focalY - this.ty) / previousScale;
+      this.tx = focalX - imageX * this.scale;
+      this.ty = focalY - imageY * this.scale;
+    }
+
     if (this.scale === MIN_SCALE) {
       this.tx = 0;
       this.ty = 0;
@@ -202,10 +224,26 @@ class ImageViewer {
     }
   }
 
-  /** Keep the image covering the overlay while panning, without allowing it to disappear. */
+  /** Keep the visible image centered or bounded while panning. */
   private clampPan(): void {
-    const maxX = (this.overlay.clientWidth * (this.scale - 1)) / 2;
-    const maxY = (this.overlay.clientHeight * (this.scale - 1)) / 2;
+    const viewportWidth = this.overlay.clientWidth;
+    const viewportHeight = this.overlay.clientHeight;
+    let imageWidth = viewportWidth;
+    let imageHeight = viewportHeight;
+
+    if (this.img.naturalWidth > 0 && this.img.naturalHeight > 0) {
+      const fitScale = Math.min(
+        viewportWidth / this.img.naturalWidth,
+        viewportHeight / this.img.naturalHeight
+      );
+      imageWidth = this.img.naturalWidth * fitScale;
+      imageHeight = this.img.naturalHeight * fitScale;
+    }
+
+    // Only permit panning in a direction once the rendered image exceeds the viewport.
+    // At lower zoom levels this keeps the image centered instead of allowing it to drift.
+    const maxX = Math.max(0, (imageWidth * this.scale - viewportWidth) / 2);
+    const maxY = Math.max(0, (imageHeight * this.scale - viewportHeight) / 2);
     this.tx = clamp(this.tx, -maxX, maxX);
     this.ty = clamp(this.ty, -maxY, maxY);
   }
@@ -239,8 +277,9 @@ class ImageViewer {
     if (this.pointers.size === 2 && this.pinchStartDist > 0) {
       const [a, b] = [...this.pointers.values()];
       const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const focalPoint = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
       this.moved = true;
-      this.setScale(this.pinchStartScale * (dist / this.pinchStartDist));
+      this.setScale(this.pinchStartScale * (dist / this.pinchStartDist), focalPoint);
       return;
     }
 

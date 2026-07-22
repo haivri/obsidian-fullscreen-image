@@ -2,6 +2,11 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.0.1 - 2026-07-21
+
+- Stabilized touch pinch-to-zoom by keeping the image position beneath the gesture.
+- Calculated pan bounds from the fitted image rather than the full viewport, preventing low-zoom drift.
+
 ## 1.0.0 - 2026-07-21
 
 - First public release.
