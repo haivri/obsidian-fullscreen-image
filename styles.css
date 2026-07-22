@@ -1,4 +1,6 @@
-.workspace-leaf-content img {
+.markdown-reading-view img,
+.markdown-preview-view img,
+.markdown-source-view img {
   cursor: zoom-in;
 }
 
@@ -34,6 +36,10 @@
   cursor: grab;
 }
 
+.fsi-img.fsi-zoomed:active {
+  cursor: grabbing;
+}
+
 .fsi-close {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
@@ -54,6 +60,12 @@
 
 .fsi-close:hover {
   background: rgba(0, 0, 0, 0.7);
+}
+
+.fsi-close:focus-visible,
+.fsi-controls button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 .fsi-controls {

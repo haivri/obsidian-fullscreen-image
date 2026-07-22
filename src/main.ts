@@ -15,6 +15,7 @@ const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_DIST = 30;
 const TAP_MOVE_THRESHOLD = 4;
 const SINGLE_TAP_DELAY_MS = 280;
+const DEFAULT_DOUBLE_TAP_SCALE = 2;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -30,6 +31,7 @@ class ImageViewer {
   private readonly overlay: HTMLDivElement;
   private readonly img: HTMLImageElement;
   private readonly onClosed: () => void;
+  private readonly previouslyFocused: HTMLElement | null;
 
   private scale = MIN_SCALE;
   private tx = 0;
@@ -51,6 +53,9 @@ class ImageViewer {
 
   constructor(sourceImg: HTMLImageElement, trueFullscreen: boolean, onClosed: () => void) {
     this.onClosed = onClosed;
+    this.previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     this.boundedContainer = trueFullscreen
       ? null
       : sourceImg.closest<HTMLElement>('.workspace-split.mod-root')
@@ -60,6 +65,8 @@ class ImageViewer {
     this.overlay = document.body.createDiv({ cls: 'fsi-overlay' });
     this.overlay.setAttribute('role', 'dialog');
     this.overlay.setAttribute('aria-modal', 'true');
+    this.overlay.setAttribute('aria-label', sourceImg.alt || 'Image viewer');
+    this.overlay.tabIndex = -1;
     this.positionOverlay();
 
     this.img = this.overlay.createEl('img', { cls: 'fsi-img' });
@@ -85,6 +92,7 @@ class ImageViewer {
     });
 
     window.requestAnimationFrame(() => this.overlay.classList.add('fsi-visible'));
+    window.requestAnimationFrame(() => closeBtn.focus());
 
     this.overlay.addEventListener('click', this.onOverlayClick);
     this.overlay.addEventListener('wheel', this.onWheel, { passive: false });
@@ -121,6 +129,7 @@ class ImageViewer {
     document.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('resize', this.onWindowResize);
     this.overlay.remove();
+    this.previouslyFocused?.focus();
     this.onClosed();
   }
 
@@ -140,10 +149,16 @@ class ImageViewer {
 
   private readonly onWindowResize = (): void => {
     this.positionOverlay();
+    this.clampPan();
+    this.applyTransform();
   };
 
   private readonly onKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === 'Escape') this.close();
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      this.close();
+    }
   };
 
   private readonly onOverlayClick = (): void => {
@@ -166,6 +181,8 @@ class ImageViewer {
     if (this.scale === MIN_SCALE) {
       this.tx = 0;
       this.ty = 0;
+    } else {
+      this.clampPan();
     }
     this.applyTransform();
   }
@@ -181,8 +198,16 @@ class ImageViewer {
     if (this.scale > MIN_SCALE) {
       this.resetZoom();
     } else {
-      this.setScale(2);
+      this.setScale(DEFAULT_DOUBLE_TAP_SCALE);
     }
+  }
+
+  /** Keep the image covering the overlay while panning, without allowing it to disappear. */
+  private clampPan(): void {
+    const maxX = (this.overlay.clientWidth * (this.scale - 1)) / 2;
+    const maxY = (this.overlay.clientHeight * (this.scale - 1)) / 2;
+    this.tx = clamp(this.tx, -maxX, maxX);
+    this.ty = clamp(this.ty, -maxY, maxY);
   }
 
   private applyTransform(): void {
@@ -226,6 +251,7 @@ class ImageViewer {
       if (Math.hypot(dx, dy) > TAP_MOVE_THRESHOLD) this.moved = true;
       this.tx = this.dragOriginTx + dx;
       this.ty = this.dragOriginTy + dy;
+      this.clampPan();
       this.applyTransform();
     }
   };
@@ -310,18 +336,49 @@ export default class FullscreenImagePlugin extends Plugin {
 
     const img = target.closest('img');
     if (!(img instanceof HTMLImageElement)) return;
-    if (!img.closest('.workspace-leaf-content')) return;
+    if (!this.isNoteImage(img)) return;
 
     evt.preventDefault();
     this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, () => {
       this.activeViewer = null;
     });
   }
+
+  /** Excludes icons, settings artwork, and images from non-note workspace panes. */
+  private isNoteImage(img: HTMLImageElement): boolean {
+    if (!img.closest('.workspace-leaf-content')) return false;
+    return Boolean(img.closest('.markdown-reading-view, .markdown-preview-view, .markdown-source-view'));
+  }
 }
 
 class FullscreenImageSettingTab extends PluginSettingTab {
   constructor(app: App, private readonly plugin: FullscreenImagePlugin) {
     super(app, plugin);
+  }
+
+  getSettingDefinitions() {
+    return [
+      {
+        name: 'True fullscreen',
+        desc: 'Expand images to cover the entire window. Turn off to keep the expanded view in the note area, leaving sidebars visible.',
+        aliases: ['full screen', 'lightbox', 'bounded viewport'],
+        control: {
+          type: 'toggle' as const,
+          key: 'trueFullscreen',
+          defaultValue: DEFAULT_SETTINGS.trueFullscreen
+        }
+      }
+    ];
+  }
+
+  getControlValue(key: string): unknown {
+    return key === 'trueFullscreen' ? this.plugin.settings.trueFullscreen : undefined;
+  }
+
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key !== 'trueFullscreen' || typeof value !== 'boolean') return;
+    this.plugin.settings.trueFullscreen = value;
+    await this.plugin.saveSettings();
   }
 
   display(): void {
