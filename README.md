@@ -15,6 +15,34 @@ telemetry, or make network requests.
 - Restores keyboard focus when the viewer closes.
 - Works without external services on desktop and mobile.
 
+## See it in action
+
+### Open any note image
+
+Images in Reading view and Live Preview show a zoom cursor. Click or tap one to open the viewer.
+
+<p align="center">
+  <img src="screenshots/01-mouseover.jpg" alt="An image in an Obsidian note showing the Fullscreen Image zoom cursor" width="900">
+</p>
+
+### Focus on the image
+
+The lightbox fits the image to the window, keeps the controls out of the way, and supports zooming
+and panning without leaving the note.
+
+<p align="center">
+  <img src="screenshots/02-true-fullscreen.png" alt="Fullscreen Image lightbox open over an Obsidian note, with zoom and close controls" width="900">
+</p>
+
+### Keep the choice simple
+
+Choose whether the viewer covers the entire Obsidian window or stays inside the active workspace
+pane.
+
+<p align="center">
+  <img src="screenshots/03-settings.png" alt="Fullscreen Image settings showing the True fullscreen toggle" width="900">
+</p>
+
 ## Usage
 
 - **Click/tap an image** — opens it in the viewer, fitting it to the available viewport regardless
