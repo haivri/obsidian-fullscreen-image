@@ -284,6 +284,10 @@ class ImageViewer {
   }
 
   private readonly onPointerDown = (e: PointerEvent): void => {
+    // All touch interaction is handled through pointer events. Cancel the
+    // compatibility click so a zoom-reset tap cannot be retargeted to the
+    // backdrop after the image shrinks and close the viewer in the same tap.
+    if (e.pointerType === 'touch') e.preventDefault();
     this.img.setPointerCapture(e.pointerId);
     this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     this.moved = false;

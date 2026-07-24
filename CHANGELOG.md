@@ -2,6 +2,11 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.0.4 - 2026-07-23
+
+- Prevented a touch zoom-reset from also closing the viewer through a retargeted compatibility click.
+- Removed the visible zoomed-to-fitted flash during mobile dismissal.
+
 ## 1.0.3 - 2026-07-23
 
 - Prevented duplicate fullscreen overlays from opening for the same image tap.
