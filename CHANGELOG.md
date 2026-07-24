@@ -2,6 +2,12 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.0.2 - 2026-07-23
+
+- Fixed mobile backdrop and close-button taps so one tap dismisses the viewer.
+- Limited the image hit area to its visible fitted bounds, making letterboxed space a true backdrop.
+- Kept tap-to-reset for zoomed images without misreading the following close tap as a double-tap.
+
 ## 1.0.1 - 2026-07-21
 
 - Stabilized touch pinch-to-zoom by keeping the image position beneath the gesture.

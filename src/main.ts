@@ -48,6 +48,7 @@ class ImageViewer {
   private lastTapTime = 0;
   private lastTapPos: Point = { x: 0, y: 0 };
   private pendingSingleTap: number | null = null;
+  private closed = false;
 
   private readonly boundedContainer: HTMLElement | null;
 
@@ -95,7 +96,14 @@ class ImageViewer {
     window.requestAnimationFrame(() => closeBtn.focus());
 
     this.overlay.addEventListener('click', this.onOverlayClick);
+    this.overlay.addEventListener('pointerup', this.onOverlayPointerUp);
     this.overlay.addEventListener('wheel', this.onWheel, { passive: false });
+    closeBtn.addEventListener('pointerup', (e) => {
+      if (e.pointerType !== 'touch') return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.close();
+    });
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.close();
@@ -117,12 +125,13 @@ class ImageViewer {
     this.img.addEventListener('pointercancel', this.onPointerUp);
 
     document.addEventListener('keydown', this.onKeyDown);
-    if (this.boundedContainer) {
-      window.addEventListener('resize', this.onWindowResize);
-    }
+    window.addEventListener('resize', this.onWindowResize);
+    if (this.img.complete) window.requestAnimationFrame(this.onImageLoad);
   }
 
   close(): void {
+    if (this.closed) return;
+    this.closed = true;
     if (this.pendingSingleTap !== null) {
       window.clearTimeout(this.pendingSingleTap);
       this.pendingSingleTap = null;
@@ -150,6 +159,7 @@ class ImageViewer {
 
   private readonly onWindowResize = (): void => {
     this.positionOverlay();
+    this.sizeImageToViewport();
     this.clampPan();
     this.applyTransform();
   };
@@ -157,6 +167,7 @@ class ImageViewer {
   private readonly onImageLoad = (): void => {
     // Natural dimensions are only available after load. Reapply the bounds then,
     // so portrait and landscape images both remain stable from their first zoom.
+    this.sizeImageToViewport();
     this.clampPan();
     this.applyTransform();
   };
@@ -169,9 +180,15 @@ class ImageViewer {
     }
   };
 
-  private readonly onOverlayClick = (): void => {
-    // Only reached for genuine background clicks: the image and buttons
-    // stop propagation before an event can bubble up to the overlay.
+  private readonly onOverlayClick = (e: MouseEvent): void => {
+    if (e.target !== this.overlay) return;
+    this.close();
+  };
+
+  private readonly onOverlayPointerUp = (e: PointerEvent): void => {
+    if (e.pointerType !== 'touch' || e.target !== this.overlay) return;
+    e.preventDefault();
+    e.stopPropagation();
     this.close();
   };
 
@@ -251,6 +268,18 @@ class ImageViewer {
   private applyTransform(): void {
     this.img.style.transform = `translate(${this.tx}px, ${this.ty}px) scale(${this.scale})`;
     this.img.classList.toggle('fsi-zoomed', this.scale > MIN_SCALE);
+  }
+
+  private sizeImageToViewport(): void {
+    if (this.img.naturalWidth <= 0 || this.img.naturalHeight <= 0) return;
+    const fitScale = Math.min(
+      this.overlay.clientWidth / this.img.naturalWidth,
+      this.overlay.clientHeight / this.img.naturalHeight
+    );
+    this.img.setCssStyles({
+      width: `${this.img.naturalWidth * fitScale}px`,
+      height: `${this.img.naturalHeight * fitScale}px`
+    });
   }
 
   private readonly onPointerDown = (e: PointerEvent): void => {
@@ -336,6 +365,9 @@ class ImageViewer {
 
     if (this.scale > MIN_SCALE) {
       this.resetZoom();
+      // A zoom-reset tap is a complete action. Do not combine it with the
+      // following close tap and accidentally interpret the pair as a double-tap.
+      this.lastTapTime = 0;
       return;
     }
 

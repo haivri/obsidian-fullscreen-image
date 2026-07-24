@@ -1,6 +1,6 @@
 {
   "name": "fullscreen-image",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Click any image to expand it fullscreen, with pinch, wheel, and button zoom plus drag to pan.",
   "main": "main.js",
   "scripts": {
