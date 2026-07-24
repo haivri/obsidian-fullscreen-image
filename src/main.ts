@@ -16,6 +16,7 @@ const DOUBLE_TAP_DIST = 30;
 const TAP_MOVE_THRESHOLD = 4;
 const SINGLE_TAP_DELAY_MS = 280;
 const DEFAULT_DOUBLE_TAP_SCALE = 2;
+const REOPEN_SUPPRESSION_MS = 500;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -96,9 +97,9 @@ class ImageViewer {
     window.requestAnimationFrame(() => closeBtn.focus());
 
     this.overlay.addEventListener('click', this.onOverlayClick);
-    this.overlay.addEventListener('pointerup', this.onOverlayPointerUp);
+    this.overlay.addEventListener('pointerdown', this.onOverlayPointerDown);
     this.overlay.addEventListener('wheel', this.onWheel, { passive: false });
-    closeBtn.addEventListener('pointerup', (e) => {
+    closeBtn.addEventListener('pointerdown', (e) => {
       if (e.pointerType !== 'touch') return;
       e.preventDefault();
       e.stopPropagation();
@@ -185,7 +186,7 @@ class ImageViewer {
     this.close();
   };
 
-  private readonly onOverlayPointerUp = (e: PointerEvent): void => {
+  private readonly onOverlayPointerDown = (e: PointerEvent): void => {
     if (e.pointerType !== 'touch' || e.target !== this.overlay) return;
     e.preventDefault();
     e.stopPropagation();
@@ -382,6 +383,7 @@ class ImageViewer {
 export default class FullscreenImagePlugin extends Plugin {
   settings: FullscreenImageSettings = DEFAULT_SETTINGS;
   private activeViewer: ImageViewer | null = null;
+  private suppressOpenUntil = 0;
 
   async onload(): Promise<void> {
     const stored = (await this.loadData()) as Partial<FullscreenImageSettings> | null;
@@ -400,7 +402,11 @@ export default class FullscreenImagePlugin extends Plugin {
   }
 
   private handleDocumentClick(evt: MouseEvent): void {
-    if (this.activeViewer) return;
+    if (
+      this.activeViewer
+      || Date.now() < this.suppressOpenUntil
+      || document.querySelector('.fsi-overlay')
+    ) return;
 
     const target = evt.target;
     if (!(target instanceof Element)) return;
@@ -412,6 +418,7 @@ export default class FullscreenImagePlugin extends Plugin {
     evt.preventDefault();
     this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, () => {
       this.activeViewer = null;
+      this.suppressOpenUntil = Date.now() + REOPEN_SUPPRESSION_MS;
     });
   }
 

@@ -2,6 +2,12 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.0.3 - 2026-07-23
+
+- Prevented duplicate fullscreen overlays from opening for the same image tap.
+- Prevented mobile compatibility clicks from reopening a viewer immediately after dismissal.
+- Moved touch backdrop and close-button dismissal to the cancelable pointer-down event.
+
 ## 1.0.2 - 2026-07-23
 
 - Fixed mobile backdrop and close-button taps so one tap dismisses the viewer.
