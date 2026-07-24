@@ -17,6 +17,7 @@ const TAP_MOVE_THRESHOLD = 4;
 const SINGLE_TAP_DELAY_MS = 280;
 const DEFAULT_DOUBLE_TAP_SCALE = 2;
 const REOPEN_SUPPRESSION_MS = 500;
+const CLOSE_ALL_VIEWERS_EVENT = 'fullscreen-image:close-all';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -126,11 +127,19 @@ class ImageViewer {
     this.img.addEventListener('pointercancel', this.onPointerUp);
 
     document.addEventListener('keydown', this.onKeyDown);
+    document.addEventListener(CLOSE_ALL_VIEWERS_EVENT, this.onCloseAllViewers);
     window.addEventListener('resize', this.onWindowResize);
     if (this.img.complete) window.requestAnimationFrame(this.onImageLoad);
   }
 
   close(): void {
+    document.dispatchEvent(new Event(CLOSE_ALL_VIEWERS_EVENT));
+    // Also clear an overlay left behind by an older hot-reloaded build that
+    // predates the shared close event.
+    document.querySelectorAll('.fsi-overlay').forEach((overlay) => overlay.remove());
+  }
+
+  private dispose(): void {
     if (this.closed) return;
     this.closed = true;
     if (this.pendingSingleTap !== null) {
@@ -138,11 +147,16 @@ class ImageViewer {
       this.pendingSingleTap = null;
     }
     document.removeEventListener('keydown', this.onKeyDown);
+    document.removeEventListener(CLOSE_ALL_VIEWERS_EVENT, this.onCloseAllViewers);
     window.removeEventListener('resize', this.onWindowResize);
     this.overlay.remove();
     this.previouslyFocused?.focus();
     this.onClosed();
   }
+
+  private readonly onCloseAllViewers = (): void => {
+    this.dispose();
+  };
 
   private positionOverlay(): void {
     if (!this.boundedContainer) {

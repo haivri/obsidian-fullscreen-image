@@ -2,6 +2,11 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.0.5 - 2026-07-24
+
+- Made every dismissal close and dispose all Fullscreen Image viewer layers together.
+- Cleaned up stale overlays left by an older hot-reloaded mobile build.
+
 ## 1.0.4 - 2026-07-23
 
 - Prevented a touch zoom-reset from also closing the viewer through a retargeted compatibility click.
