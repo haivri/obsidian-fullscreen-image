@@ -100,6 +100,10 @@ npm run lint
 4. Push the resulting numeric tag (for example `0.1.1`). GitHub Actions builds the plugin and
    attaches `main.js`, `manifest.json`, and `styles.css` to the GitHub Release.
 
+On the maintainer workstation, use the USA OS plugin release command. It pushes the exact
+`main` commit to private Forgejo and public GitHub, verifies both tips, and atomically updates
+the primary vault's runtime copy while preserving its settings.
+
 ## Contributing
 
 Bug reports and pull requests are welcome. Please keep the plugin focused: it should remain a
