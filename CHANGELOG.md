@@ -2,6 +2,10 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.0.6 - 2026-08-05
+
+- Prevented Obsidian's built-in image viewer from opening underneath Fullscreen Image.
+
 ## 1.0.5 - 2026-07-24
 
 - Made every dismissal close and dispose all Fullscreen Image viewer layers together.

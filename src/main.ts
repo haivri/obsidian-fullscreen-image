@@ -407,7 +407,14 @@ export default class FullscreenImagePlugin extends Plugin {
     const stored = (await this.loadData()) as Partial<FullscreenImageSettings> | null;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, stored);
     this.addSettingTab(new FullscreenImageSettingTab(this.app, this));
-    this.registerDomEvent(document, 'click', this.handleDocumentClick.bind(this));
+    // Capture note-image clicks before Obsidian's built-in image viewer can
+    // open underneath ours and remain visible after this viewer closes.
+    this.registerDomEvent(
+      document,
+      'click',
+      this.handleDocumentClick.bind(this),
+      { capture: true }
+    );
   }
 
   onunload(): void {
@@ -434,6 +441,8 @@ export default class FullscreenImagePlugin extends Plugin {
     if (!this.isNoteImage(img)) return;
 
     evt.preventDefault();
+    evt.stopPropagation();
+    evt.stopImmediatePropagation();
     this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, () => {
       this.activeViewer = null;
       this.suppressOpenUntil = Date.now() + REOPEN_SUPPRESSION_MS;
