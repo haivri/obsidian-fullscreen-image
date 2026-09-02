@@ -11,16 +11,20 @@ const DEFAULT_SETTINGS: FullscreenImageSettings = {
 };
 
 /**
- * The image's caption, when its note gives it a real one: the text of a
- * sibling <figcaption> (how Simple Gallery renders captions in either
+ * The image's caption, when its note gives it a real, visible one: the text
+ * of a sibling <figcaption> (how Simple Gallery renders captions in either
  * placement). Deliberately not img.alt — alt commonly falls back to the
  * filename, which is not a caption. The :not() skips Simple Gallery's
- * Live Preview "Add a caption" placeholder.
+ * Live Preview "Add a caption" placeholder, and a figcaption hidden in the
+ * note (a gallery's captions turned off globally, per gallery, or per
+ * photo) stays hidden here too: visible in the note = visible fullscreen.
  */
 function captionForImage(img: HTMLImageElement): string | null {
   const figcaption = img.closest('figure')
     ?.querySelector('figcaption:not(.simple-gallery-caption-empty)');
-  return figcaption?.textContent?.trim() || null;
+  if (!(figcaption instanceof HTMLElement)) return null;
+  if (getComputedStyle(figcaption).display === 'none') return null;
+  return figcaption.textContent?.trim() || null;
 }
 
 const MIN_SCALE = 1;
