@@ -110,7 +110,7 @@ class ImageViewer {
     });
 
     window.requestAnimationFrame(() => this.overlay.classList.add('fsi-visible'));
-    window.requestAnimationFrame(() => closeBtn.focus());
+    window.requestAnimationFrame(() => closeBtn.focus({ preventScroll: true }));
 
     this.overlay.addEventListener('click', this.onOverlayClick);
     this.overlay.addEventListener('pointerdown', this.onOverlayPointerDown);
@@ -198,7 +198,9 @@ class ImageViewer {
     document.removeEventListener(CLOSE_ALL_VIEWERS_EVENT, this.onCloseAllViewers);
     window.removeEventListener('resize', this.onWindowResize);
     this.overlay.remove();
-    this.previouslyFocused?.focus();
+    // preventScroll: restoring focus must not scroll the note back to the
+    // source image's element (most visible closing over a tall gallery).
+    this.previouslyFocused?.focus({ preventScroll: true });
     this.onClosed();
   }
 

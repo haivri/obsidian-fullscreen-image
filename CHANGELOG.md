@@ -2,6 +2,10 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## Unreleased
+
+- Closing the viewer no longer scrolls the note back to the source image's position (most visible closing over a tall gallery): keyboard focus is still restored, but without scrolling the restored element into view.
+
 ## 1.0.8 - 2026-09-02
 
 - Fixed the viewer buttons staying dark after a tap on touch devices: hover styling is now applied only on devices that hover, with a distinct momentary pressed state.
