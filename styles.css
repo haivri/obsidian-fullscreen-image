@@ -195,8 +195,65 @@
   display: none;
 }
 
-.fsi-caption-single {
+.fsi-caption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fsi-caption-text {
+  min-width: 0;
+}
+
+.fsi-caption-single .fsi-caption-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/*
+ * Long captions start minimized so the photo stays the subject; tapping the
+ * bar toggles the full text. The bar is interactive only when there is
+ * something to toggle — a short caption's bar keeps letting clicks pass
+ * through to the backdrop as before.
+ */
+.fsi-caption-expandable {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.fsi-caption-collapsed .fsi-caption-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.fsi-caption-single.fsi-caption-collapsed .fsi-caption-text {
+  -webkit-line-clamp: 1;
+}
+
+.fsi-caption-expanded {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.fsi-caption-expanded .fsi-caption-text {
+  white-space: normal;
+}
+
+.fsi-caption-toggle {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
 }

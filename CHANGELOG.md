@@ -2,6 +2,10 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.4.0 - 2026-09-02
+
+- Long captions (over 250 characters) now start minimized in the viewer — clamped to a couple of lines with a chevron — so the photo stays the subject. Tapping the caption bar expands the full text over a scrollable area at the bottom of the screen and collapses it again; the tap never falls through to the backdrop, so toggling a caption can't close the viewer or zoom the image. Arrowing to another image re-collapses. Short captions behave exactly as before.
+
 ## 1.3.0 - 2026-09-02
 
 - New **Caption length** setting for the viewer's caption bar: **Full** (default) shows the whole caption, wrapping as needed — even when the gallery truncates its captions to a single line — while **Single line** truncates with an ellipsis here too.

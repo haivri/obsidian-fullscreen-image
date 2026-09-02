@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Plugin, PluginSettingTab, setIcon, Setting } from 'obsidian';
 
 interface FullscreenImageSettings {
   trueFullscreen: boolean;
@@ -46,6 +46,8 @@ const SINGLE_TAP_DELAY_MS = 280;
 const DEFAULT_DOUBLE_TAP_SCALE = 2;
 const REOPEN_SUPPRESSION_MS = 500;
 const CLOSE_ALL_VIEWERS_EVENT = 'fullscreen-image:close-all';
+/** Captions longer than this start minimized behind a chevron, so the photo stays the subject. */
+const LONG_CAPTION_COLLAPSE_CHARS = 250;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -142,6 +144,14 @@ class ImageViewer {
     if (settings.showCaption) {
       this.caption = this.overlay.createDiv({ cls: 'fsi-caption' });
       if (settings.captionLength === 'single') this.caption.addClass('fsi-caption-single');
+      // A long caption's bar is interactive (CSS grants it pointer-events);
+      // stopping propagation keeps its toggle tap from ever reaching the
+      // backdrop's close/zoom handlers. Short captions stay click-through.
+      this.caption.addEventListener('pointerdown', (e) => e.stopPropagation());
+      this.caption.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleCaptionExpanded();
+      });
       this.updateCaption(sourceImg);
     }
 
@@ -301,13 +311,32 @@ class ImageViewer {
     this.updateGalleryPosition();
   }
 
-  /** Shows the source image's caption beneath the photo, or nothing when it has none. */
+  /**
+   * Shows the source image's caption beneath the photo, or nothing when it
+   * has none. A long caption starts minimized (clamped, with a chevron);
+   * tapping the bar expands it over a scrollable area and back. Navigation
+   * to another image re-collapses.
+   */
   private updateCaption(sourceImg: HTMLImageElement): void {
     if (!this.caption) return;
     const figcaption = captionElementForImage(sourceImg);
     const text = figcaption?.textContent?.trim() ?? '';
-    this.caption.setText(text);
+    this.caption.empty();
     this.caption.toggleClass('fsi-caption-hidden', !text);
+
+    const expandable = text.length > LONG_CAPTION_COLLAPSE_CHARS;
+    this.caption.toggleClass('fsi-caption-expandable', expandable);
+    this.caption.toggleClass('fsi-caption-collapsed', expandable);
+    this.caption.removeClass('fsi-caption-expanded');
+
+    this.caption.createSpan({ cls: 'fsi-caption-text', text });
+    if (expandable) {
+      const toggle = this.caption.createEl('button', {
+        cls: 'fsi-caption-toggle',
+        attr: { type: 'button', 'aria-label': 'Expand caption' }
+      });
+      setIcon(toggle, 'chevron-up');
+    }
 
     // The caption keeps the typography its gallery gave it (e.g. Simple
     // Gallery's typewriter caption font), so fullscreen reads as the same
@@ -320,6 +349,18 @@ class ImageViewer {
     } else {
       this.caption.style.removeProperty('font-family');
       this.caption.style.removeProperty('font-style');
+    }
+  }
+
+  private toggleCaptionExpanded(): void {
+    if (!this.caption || !this.caption.hasClass('fsi-caption-expandable')) return;
+    const expand = !this.caption.hasClass('fsi-caption-expanded');
+    this.caption.toggleClass('fsi-caption-expanded', expand);
+    this.caption.toggleClass('fsi-caption-collapsed', !expand);
+    const toggle = this.caption.querySelector<HTMLElement>('.fsi-caption-toggle');
+    if (toggle) {
+      setIcon(toggle, expand ? 'chevron-down' : 'chevron-up');
+      toggle.setAttribute('aria-label', expand ? 'Collapse caption' : 'Expand caption');
     }
   }
 
