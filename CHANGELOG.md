@@ -2,6 +2,10 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.0.8 - 2026-09-02
+
+- Fixed the viewer buttons staying dark after a tap on touch devices: hover styling is now applied only on devices that hover, with a distinct momentary pressed state.
+
 ## 1.0.7 - 2026-09-02
 
 - Gallery navigation: an image opened from a Simple Gallery block now knows its neighbors. Prev/next arrow buttons appear in the viewer alongside a position counter, the left/right arrow keys step through the gallery (wrapping at either end), and the adjacent images preload. Coupling is DOM-only, so neither plugin requires the other.

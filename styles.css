@@ -61,8 +61,13 @@
   cursor: pointer;
 }
 
-.fsi-close:hover {
-  background: rgba(0, 0, 0, 0.7);
+/* Hover styles are gated to devices that actually hover. On touch, a tap
+   otherwise latches the :hover state and the button stays dark until the
+   next tap lands elsewhere. */
+@media (hover: hover) {
+  .fsi-close:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
 }
 
 .fsi-close:focus-visible,
@@ -92,8 +97,10 @@
   cursor: pointer;
 }
 
-.fsi-nav:hover {
-  background: rgba(0, 0, 0, 0.7);
+@media (hover: hover) {
+  .fsi-nav:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
 }
 
 .fsi-prev {
@@ -145,6 +152,20 @@
   cursor: pointer;
 }
 
-.fsi-controls button:hover {
-  background: rgba(0, 0, 0, 0.7);
+@media (hover: hover) {
+  .fsi-controls button:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.fsi-close:active,
+.fsi-nav:active,
+.fsi-controls button:active {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.fsi-close,
+.fsi-nav,
+.fsi-controls button {
+  -webkit-tap-highlight-color: transparent;
 }
