@@ -1,7 +1,7 @@
 {
   "id": "fullscreen-image",
   "name": "Fullscreen Image",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "minAppVersion": "1.5.0",
   "description": "Click any image to expand it fullscreen, with pinch, wheel, and button zoom plus drag to pan.",
   "author": "Robert Fleming",

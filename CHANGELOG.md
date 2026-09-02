@@ -2,7 +2,7 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
-## Unreleased
+## 1.0.9 - 2026-09-02
 
 - Closing the viewer no longer scrolls the note back to the source image's position (most visible closing over a tall gallery): keyboard focus is still restored, but without scrolling the restored element into view.
 
