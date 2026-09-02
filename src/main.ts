@@ -3,11 +3,15 @@ import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 interface FullscreenImageSettings {
   trueFullscreen: boolean;
   showCaption: boolean;
+  captionLength: 'full' | 'single';
 }
 
 const DEFAULT_SETTINGS: FullscreenImageSettings = {
   trueFullscreen: true,
-  showCaption: true
+  showCaption: true,
+  // The expanded view is where the whole caption belongs, even when the
+  // gallery truncates its captions to a single line.
+  captionLength: 'full'
 };
 
 /**
@@ -86,11 +90,11 @@ class ImageViewer {
 
   constructor(
     sourceImg: HTMLImageElement,
-    trueFullscreen: boolean,
-    showCaption: boolean,
+    settings: FullscreenImageSettings,
     onClosed: () => void,
     galleryImages: HTMLImageElement[] | null = null
   ) {
+    const trueFullscreen = settings.trueFullscreen;
     this.onClosed = onClosed;
     const galleryIndex = galleryImages ? galleryImages.indexOf(sourceImg) : -1;
     this.galleryImages = galleryImages && galleryImages.length > 1 && galleryIndex >= 0
@@ -135,8 +139,9 @@ class ImageViewer {
       attr: { type: 'button', 'aria-label': 'Close' }
     });
 
-    if (showCaption) {
+    if (settings.showCaption) {
       this.caption = this.overlay.createDiv({ cls: 'fsi-caption' });
+      if (settings.captionLength === 'single') this.caption.addClass('fsi-caption-single');
       this.updateCaption(sourceImg);
     }
 
@@ -581,7 +586,7 @@ export default class FullscreenImagePlugin extends Plugin {
     evt.preventDefault();
     evt.stopPropagation();
     evt.stopImmediatePropagation();
-    this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, this.settings.showCaption, () => {
+    this.activeViewer = new ImageViewer(img, this.settings, () => {
       this.activeViewer = null;
       this.suppressOpenUntil = Date.now() + REOPEN_SUPPRESSION_MS;
     }, this.collectGalleryImages(img));
@@ -632,6 +637,20 @@ class FullscreenImageSettingTab extends PluginSettingTab {
           key: 'showCaption',
           defaultValue: DEFAULT_SETTINGS.showCaption
         }
+      },
+      {
+        name: 'Caption length',
+        desc: 'Full shows the whole caption, wrapping as needed — even when the gallery truncates it. Single line truncates with an ellipsis here too.',
+        aliases: ['truncate', 'ellipsis', 'wrap'],
+        control: {
+          type: 'dropdown' as const,
+          key: 'captionLength',
+          defaultValue: DEFAULT_SETTINGS.captionLength,
+          options: {
+            full: 'Full',
+            single: 'Single line'
+          }
+        }
       }
     ];
   }
@@ -639,14 +658,20 @@ class FullscreenImageSettingTab extends PluginSettingTab {
   getControlValue(key: string): unknown {
     if (key === 'trueFullscreen') return this.plugin.settings.trueFullscreen;
     if (key === 'showCaption') return this.plugin.settings.showCaption;
+    if (key === 'captionLength') return this.plugin.settings.captionLength;
     return undefined;
   }
 
   async setControlValue(key: string, value: unknown): Promise<void> {
-    if (typeof value !== 'boolean') return;
-    if (key === 'trueFullscreen') this.plugin.settings.trueFullscreen = value;
-    else if (key === 'showCaption') this.plugin.settings.showCaption = value;
-    else return;
+    if (key === 'trueFullscreen' && typeof value === 'boolean') {
+      this.plugin.settings.trueFullscreen = value;
+    } else if (key === 'showCaption' && typeof value === 'boolean') {
+      this.plugin.settings.showCaption = value;
+    } else if (key === 'captionLength' && (value === 'full' || value === 'single')) {
+      this.plugin.settings.captionLength = value;
+    } else {
+      return;
+    }
     await this.plugin.saveSettings();
   }
 
@@ -671,6 +696,18 @@ class FullscreenImageSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.showCaption)
         .onChange(async (value) => {
           this.plugin.settings.showCaption = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Caption length')
+      .setDesc('Full shows the whole caption, wrapping as needed — even when the gallery truncates it. Single line truncates with an ellipsis here too.')
+      .addDropdown((dropdown) => dropdown
+        .addOption('full', 'Full')
+        .addOption('single', 'Single line')
+        .setValue(this.plugin.settings.captionLength)
+        .onChange(async (value) => {
+          this.plugin.settings.captionLength = value === 'single' ? 'single' : 'full';
           await this.plugin.saveSettings();
         }));
   }

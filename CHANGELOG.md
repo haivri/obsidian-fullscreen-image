@@ -2,6 +2,10 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.3.0 - 2026-09-02
+
+- New **Caption length** setting for the viewer's caption bar: **Full** (default) shows the whole caption, wrapping as needed — even when the gallery truncates its captions to a single line — while **Single line** truncates with an ellipsis here too.
+
 ## 1.2.0 - 2026-09-02
 
 - The caption bar honors a gallery's `data-fullscreen-caption` stamp, enabling Simple Gallery's four-way caption visibility: "Fullscreen only" captions appear in the viewer even though they're hidden in the note, and "Gallery only" captions stay out of it. Without a stamp, visibility still decides.
