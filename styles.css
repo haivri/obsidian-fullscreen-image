@@ -169,3 +169,28 @@
 .fsi-controls button {
   -webkit-tap-highlight-color: transparent;
 }
+
+/*
+ * Caption bar: sits above the zoom controls, never intercepts taps (a tap
+ * through it must still close/zoom exactly as on the backdrop or image).
+ */
+.fsi-caption {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 68px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(80%, 640px);
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.9em;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+}
+
+.fsi-caption-hidden {
+  display: none;
+}

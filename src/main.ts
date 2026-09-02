@@ -2,11 +2,26 @@ import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 interface FullscreenImageSettings {
   trueFullscreen: boolean;
+  showCaption: boolean;
 }
 
 const DEFAULT_SETTINGS: FullscreenImageSettings = {
-  trueFullscreen: true
+  trueFullscreen: true,
+  showCaption: true
 };
+
+/**
+ * The image's caption, when its note gives it a real one: the text of a
+ * sibling <figcaption> (how Simple Gallery renders captions in either
+ * placement). Deliberately not img.alt — alt commonly falls back to the
+ * filename, which is not a caption. The :not() skips Simple Gallery's
+ * Live Preview "Add a caption" placeholder.
+ */
+function captionForImage(img: HTMLImageElement): string | null {
+  const figcaption = img.closest('figure')
+    ?.querySelector('figcaption:not(.simple-gallery-caption-empty)');
+  return figcaption?.textContent?.trim() || null;
+}
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
@@ -57,11 +72,13 @@ class ImageViewer {
   private readonly galleryImages: HTMLImageElement[] | null;
   private galleryIndex: number;
   private counter: HTMLDivElement | null = null;
+  private caption: HTMLDivElement | null = null;
   private lastTouchNavTime = 0;
 
   constructor(
     sourceImg: HTMLImageElement,
     trueFullscreen: boolean,
+    showCaption: boolean,
     onClosed: () => void,
     galleryImages: HTMLImageElement[] | null = null
   ) {
@@ -108,6 +125,11 @@ class ImageViewer {
       text: '×',
       attr: { type: 'button', 'aria-label': 'Close' }
     });
+
+    if (showCaption) {
+      this.caption = this.overlay.createDiv({ cls: 'fsi-caption' });
+      this.updateCaption(sourceImg);
+    }
 
     window.requestAnimationFrame(() => this.overlay.classList.add('fsi-visible'));
     window.requestAnimationFrame(() => closeBtn.focus({ preventScroll: true }));
@@ -261,7 +283,16 @@ class ImageViewer {
     this.img.src = target.currentSrc || target.src;
     this.img.alt = target.alt || '';
     this.overlay.setAttribute('aria-label', target.alt || 'Image viewer');
+    this.updateCaption(target);
     this.updateGalleryPosition();
+  }
+
+  /** Shows the source image's caption beneath the photo, or nothing when it has none. */
+  private updateCaption(sourceImg: HTMLImageElement): void {
+    if (!this.caption) return;
+    const text = captionForImage(sourceImg);
+    this.caption.setText(text ?? '');
+    this.caption.toggleClass('fsi-caption-hidden', !text);
   }
 
   private updateGalleryPosition(): void {
@@ -527,7 +558,7 @@ export default class FullscreenImagePlugin extends Plugin {
     evt.preventDefault();
     evt.stopPropagation();
     evt.stopImmediatePropagation();
-    this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, () => {
+    this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, this.settings.showCaption, () => {
       this.activeViewer = null;
       this.suppressOpenUntil = Date.now() + REOPEN_SUPPRESSION_MS;
     }, this.collectGalleryImages(img));
@@ -568,17 +599,31 @@ class FullscreenImageSettingTab extends PluginSettingTab {
           key: 'trueFullscreen',
           defaultValue: DEFAULT_SETTINGS.trueFullscreen
         }
+      },
+      {
+        name: 'Show caption',
+        desc: 'Display the image’s caption from its note beneath the expanded image, such as a gallery photo caption.',
+        aliases: ['caption', 'figcaption', 'title'],
+        control: {
+          type: 'toggle' as const,
+          key: 'showCaption',
+          defaultValue: DEFAULT_SETTINGS.showCaption
+        }
       }
     ];
   }
 
   getControlValue(key: string): unknown {
-    return key === 'trueFullscreen' ? this.plugin.settings.trueFullscreen : undefined;
+    if (key === 'trueFullscreen') return this.plugin.settings.trueFullscreen;
+    if (key === 'showCaption') return this.plugin.settings.showCaption;
+    return undefined;
   }
 
   async setControlValue(key: string, value: unknown): Promise<void> {
-    if (key !== 'trueFullscreen' || typeof value !== 'boolean') return;
-    this.plugin.settings.trueFullscreen = value;
+    if (typeof value !== 'boolean') return;
+    if (key === 'trueFullscreen') this.plugin.settings.trueFullscreen = value;
+    else if (key === 'showCaption') this.plugin.settings.showCaption = value;
+    else return;
     await this.plugin.saveSettings();
   }
 
@@ -593,6 +638,16 @@ class FullscreenImageSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.trueFullscreen)
         .onChange(async (value) => {
           this.plugin.settings.trueFullscreen = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Show caption')
+      .setDesc('Display the image’s caption from its note beneath the expanded image, such as a gallery photo caption.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.showCaption)
+        .onChange(async (value) => {
+          this.plugin.settings.showCaption = value;
           await this.plugin.saveSettings();
         }));
   }

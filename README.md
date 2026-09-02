@@ -13,6 +13,7 @@ telemetry, or make network requests.
 - Supports mouse, keyboard, touch, trackpad, and pinch-to-zoom controls.
 - Keeps panning inside the image bounds so the image cannot be dragged away.
 - Navigates a [Simple Gallery](https://github.com/haivri/obsidian-simple-gallery) block's images with on-screen arrows, a position counter, and the left/right arrow keys.
+- Shows the image's caption (its note's real `<figcaption>`, e.g. a Simple Gallery caption) in a translucent bar beneath the photo, updating as you arrow through a gallery.
 - Restores keyboard focus when the viewer closes.
 - Works without external services on desktop and mobile.
 
@@ -64,6 +65,9 @@ Canvas file nodes are not supported.
 
 - **Use the full screen** — When enabled (the default), the viewer covers the entire Obsidian
   window. Disable it to keep the viewer inside the active workspace pane.
+- **Show caption** — When enabled (the default), the image's caption from its note is shown
+  beneath the expanded image. Images without a real caption show nothing; alt text and
+  filenames are never used.
 
 ## Installation
 

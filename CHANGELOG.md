@@ -2,6 +2,10 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.1.0 - 2026-09-02
+
+- The viewer now shows the image's caption in a translucent bar beneath the photo — read from the note's real `<figcaption>` (how Simple Gallery renders captions), never from alt text, so filenames are never mistaken for captions. It updates as you arrow through a gallery and can be turned off with the new **Show caption** setting.
+
 ## 1.0.9 - 2026-09-02
 
 - Closing the viewer no longer scrolls the note back to the source image's position (most visible closing over a tall gallery): keyboard focus is still restored, but without scrolling the restored element into view.
