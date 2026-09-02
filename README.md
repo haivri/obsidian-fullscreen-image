@@ -13,7 +13,7 @@ telemetry, or make network requests.
 - Supports mouse, keyboard, touch, trackpad, and pinch-to-zoom controls.
 - Keeps panning inside the image bounds so the image cannot be dragged away.
 - Navigates a [Simple Gallery](https://github.com/haivri/obsidian-simple-gallery) block's images with on-screen arrows, a position counter, and the left/right arrow keys.
-- Shows the image's caption (its note's real `<figcaption>`, e.g. a Simple Gallery caption) in a translucent bar beneath the photo, updating as you arrow through a gallery.
+- Shows the image's caption (its note's real `<figcaption>`, e.g. a Simple Gallery caption) in a translucent bar beneath the photo, in the caption's own typography, updating as you arrow through a gallery. Honors Simple Gallery's caption-visibility choices, including "Fullscreen only" and "Gallery only".
 - Restores keyboard focus when the viewer closes.
 - Works without external services on desktop and mobile.
 

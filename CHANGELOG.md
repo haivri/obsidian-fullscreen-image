@@ -2,6 +2,11 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## 1.2.0 - 2026-09-02
+
+- The caption bar honors a gallery's `data-fullscreen-caption` stamp, enabling Simple Gallery's four-way caption visibility: "Fullscreen only" captions appear in the viewer even though they're hidden in the note, and "Gallery only" captions stay out of it. Without a stamp, visibility still decides.
+- The caption bar keeps the typography its gallery gave the caption (e.g. the typewriter/monospace caption font), instead of restyling it.
+
 ## 1.1.1 - 2026-09-02
 
 - The caption bar now follows the note's caption visibility: a figcaption hidden in the note (a gallery's captions turned off globally, per gallery, or per photo) no longer appears in the fullscreen viewer. Visible in the note = visible fullscreen.

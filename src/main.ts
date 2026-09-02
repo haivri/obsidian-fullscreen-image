@@ -11,20 +11,25 @@ const DEFAULT_SETTINGS: FullscreenImageSettings = {
 };
 
 /**
- * The image's caption, when its note gives it a real, visible one: the text
- * of a sibling <figcaption> (how Simple Gallery renders captions in either
+ * The image's caption element, when its note gives it a real one to show: a
+ * sibling <figcaption> (how Simple Gallery renders captions in either
  * placement). Deliberately not img.alt — alt commonly falls back to the
  * filename, which is not a caption. The :not() skips Simple Gallery's
- * Live Preview "Add a caption" placeholder, and a figcaption hidden in the
- * note (a gallery's captions turned off globally, per gallery, or per
- * photo) stays hidden here too: visible in the note = visible fullscreen.
+ * Live Preview "Add a caption" placeholder.
+ *
+ * A data-fullscreen-caption stamp, when present, is authoritative — it lets
+ * a gallery's "Fullscreen only" captions show here while display:none in
+ * the note, and its "Gallery only" captions stay out of the viewer. Without
+ * a stamp, visibility decides: visible in the note = visible fullscreen.
  */
-function captionForImage(img: HTMLImageElement): string | null {
+function captionElementForImage(img: HTMLImageElement): HTMLElement | null {
   const figcaption = img.closest('figure')
     ?.querySelector('figcaption:not(.simple-gallery-caption-empty)');
   if (!(figcaption instanceof HTMLElement)) return null;
-  if (getComputedStyle(figcaption).display === 'none') return null;
-  return figcaption.textContent?.trim() || null;
+  const stamp = figcaption.dataset.fullscreenCaption;
+  if (stamp === 'hide') return null;
+  if (stamp !== 'show' && getComputedStyle(figcaption).display === 'none') return null;
+  return figcaption;
 }
 
 const MIN_SCALE = 1;
@@ -294,9 +299,23 @@ class ImageViewer {
   /** Shows the source image's caption beneath the photo, or nothing when it has none. */
   private updateCaption(sourceImg: HTMLImageElement): void {
     if (!this.caption) return;
-    const text = captionForImage(sourceImg);
-    this.caption.setText(text ?? '');
+    const figcaption = captionElementForImage(sourceImg);
+    const text = figcaption?.textContent?.trim() ?? '';
+    this.caption.setText(text);
     this.caption.toggleClass('fsi-caption-hidden', !text);
+
+    // The caption keeps the typography its gallery gave it (e.g. Simple
+    // Gallery's typewriter caption font), so fullscreen reads as the same
+    // caption, not a restyled copy. Computed styles resolve for
+    // display:none figcaptions too ("Fullscreen only" captions).
+    if (figcaption) {
+      const styles = getComputedStyle(figcaption);
+      this.caption.style.fontFamily = styles.fontFamily;
+      this.caption.style.fontStyle = styles.fontStyle;
+    } else {
+      this.caption.style.removeProperty('font-family');
+      this.caption.style.removeProperty('font-style');
+    }
   }
 
   private updateGalleryPosition(): void {
