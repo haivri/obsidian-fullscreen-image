@@ -54,8 +54,23 @@ class ImageViewer {
 
   private readonly boundedContainer: HTMLElement | null;
 
-  constructor(sourceImg: HTMLImageElement, trueFullscreen: boolean, onClosed: () => void) {
+  private readonly galleryImages: HTMLImageElement[] | null;
+  private galleryIndex: number;
+  private counter: HTMLDivElement | null = null;
+  private lastTouchNavTime = 0;
+
+  constructor(
+    sourceImg: HTMLImageElement,
+    trueFullscreen: boolean,
+    onClosed: () => void,
+    galleryImages: HTMLImageElement[] | null = null
+  ) {
     this.onClosed = onClosed;
+    const galleryIndex = galleryImages ? galleryImages.indexOf(sourceImg) : -1;
+    this.galleryImages = galleryImages && galleryImages.length > 1 && galleryIndex >= 0
+      ? galleryImages
+      : null;
+    this.galleryIndex = this.galleryImages ? galleryIndex : -1;
     this.previouslyFocused = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
@@ -118,6 +133,39 @@ class ImageViewer {
       e.stopPropagation();
       this.zoomBy(-ZOOM_STEP);
     });
+
+    if (this.galleryImages) {
+      this.counter = this.overlay.createDiv({ cls: 'fsi-counter' });
+      const prevBtn = this.overlay.createEl('button', {
+        cls: 'fsi-nav fsi-prev',
+        text: '‹',
+        attr: { type: 'button', 'aria-label': 'Previous image' }
+      });
+      const nextBtn = this.overlay.createEl('button', {
+        cls: 'fsi-nav fsi-next',
+        text: '›',
+        attr: { type: 'button', 'aria-label': 'Next image' }
+      });
+      const wireNav = (btn: HTMLButtonElement, delta: number): void => {
+        btn.addEventListener('pointerdown', (e) => {
+          if (e.pointerType !== 'touch') return;
+          e.preventDefault();
+          e.stopPropagation();
+          this.lastTouchNavTime = Date.now();
+          this.navigate(delta);
+        });
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // A browser that still fires the compatibility click after the
+          // handled touch pointerdown must not navigate a second time.
+          if (Date.now() - this.lastTouchNavTime < REOPEN_SUPPRESSION_MS) return;
+          this.navigate(delta);
+        });
+      };
+      wireNav(prevBtn, -1);
+      wireNav(nextBtn, 1);
+      this.updateGalleryPosition();
+    }
 
     this.img.addEventListener('click', (e) => e.stopPropagation());
     this.img.addEventListener('load', this.onImageLoad);
@@ -192,8 +240,42 @@ class ImageViewer {
       e.preventDefault();
       e.stopPropagation();
       this.close();
+      return;
+    }
+    if (this.galleryImages && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.navigate(e.key === 'ArrowLeft' ? -1 : 1);
     }
   };
+
+  /** Steps through the owning gallery's images, wrapping at either end. */
+  private navigate(delta: number): void {
+    if (!this.galleryImages) return;
+    const count = this.galleryImages.length;
+    this.galleryIndex = (this.galleryIndex + delta + count) % count;
+    const target = this.galleryImages[this.galleryIndex];
+    this.resetZoom();
+    this.img.src = target.currentSrc || target.src;
+    this.img.alt = target.alt || '';
+    this.overlay.setAttribute('aria-label', target.alt || 'Image viewer');
+    this.updateGalleryPosition();
+  }
+
+  private updateGalleryPosition(): void {
+    if (!this.galleryImages || !this.counter) return;
+    const count = this.galleryImages.length;
+    this.counter.setText(`${this.galleryIndex + 1} / ${count}`);
+    // Warm the neighbors so arrowing through the gallery doesn't flash an
+    // empty frame while each image fetches.
+    for (const neighbor of [
+      this.galleryImages[(this.galleryIndex + 1) % count],
+      this.galleryImages[(this.galleryIndex - 1 + count) % count]
+    ]) {
+      const preload = new Image();
+      preload.src = neighbor.currentSrc || neighbor.src;
+    }
+  }
 
   private readonly onOverlayClick = (e: MouseEvent): void => {
     if (e.target !== this.overlay) return;
@@ -446,7 +528,19 @@ export default class FullscreenImagePlugin extends Plugin {
     this.activeViewer = new ImageViewer(img, this.settings.trueFullscreen, () => {
       this.activeViewer = null;
       this.suppressOpenUntil = Date.now() + REOPEN_SUPPRESSION_MS;
-    });
+    }, this.collectGalleryImages(img));
+  }
+
+  /**
+   * An image inside a Simple Gallery block opens with prev/next navigation
+   * across every image in that gallery (all sections, document order). The
+   * coupling is deliberately DOM-only so neither plugin depends on the other.
+   */
+  private collectGalleryImages(img: HTMLImageElement): HTMLImageElement[] | null {
+    const galleryRoot = img.closest('.simple-gallery-root');
+    if (!galleryRoot) return null;
+    const images = Array.from(galleryRoot.querySelectorAll<HTMLImageElement>('img.simple-gallery-img'));
+    return images.length > 1 && images.includes(img) ? images : null;
   }
 
   /** Excludes icons, settings artwork, and images from non-note workspace panes. */

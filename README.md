@@ -12,6 +12,7 @@ telemetry, or make network requests.
 - Fits every image to the available viewport without stretching it.
 - Supports mouse, keyboard, touch, trackpad, and pinch-to-zoom controls.
 - Keeps panning inside the image bounds so the image cannot be dragged away.
+- Navigates a [Simple Gallery](https://github.com/haivri/obsidian-simple-gallery) block's images with on-screen arrows, a position counter, and the left/right arrow keys.
 - Restores keyboard focus when the viewer closes.
 - Works without external services on desktop and mobile.
 

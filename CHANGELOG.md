@@ -2,6 +2,10 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
+## Unreleased
+
+- Gallery navigation: an image opened from a Simple Gallery block now knows its neighbors. Prev/next arrow buttons appear in the viewer alongside a position counter, the left/right arrow keys step through the gallery (wrapping at either end), and the adjacent images preload. Coupling is DOM-only, so neither plugin requires the other.
+
 ## 1.0.6 - 2026-08-05
 
 - Prevented Obsidian's built-in image viewer from opening underneath Fullscreen Image.

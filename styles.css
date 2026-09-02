@@ -66,9 +66,58 @@
 }
 
 .fsi-close:focus-visible,
+.fsi-nav:focus-visible,
 .fsi-controls button:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 3px;
+}
+
+.fsi-nav {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 32px;
+  line-height: 1;
+  padding-bottom: 4px;
+  cursor: pointer;
+}
+
+.fsi-nav:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.fsi-prev {
+  left: calc(env(safe-area-inset-left, 0px) + 10px);
+}
+
+.fsi-next {
+  right: calc(env(safe-area-inset-right, 0px) + 10px);
+}
+
+.fsi-counter {
+  position: absolute;
+  z-index: 2;
+  top: calc(env(safe-area-inset-top, 0px) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+  user-select: none;
 }
 
 .fsi-controls {
