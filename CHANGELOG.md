@@ -2,7 +2,7 @@
 
 All notable changes to Fullscreen Image will be documented here.
 
-## Unreleased
+## 1.0.7 - 2026-09-02
 
 - Gallery navigation: an image opened from a Simple Gallery block now knows its neighbors. Prev/next arrow buttons appear in the viewer alongside a position counter, the left/right arrow keys step through the gallery (wrapping at either end), and the adjacent images preload. Coupling is DOM-only, so neither plugin requires the other.
 
