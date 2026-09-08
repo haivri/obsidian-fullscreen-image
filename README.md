@@ -1,5 +1,7 @@
 # Fullscreen Image
 
+<a href="https://www.buymeacoffee.com/robertfleming"><img src="assets/buy-me-a-coffee.png" alt="Buy me a coffee" width="217"></a>
+
 Click an image in a note to view it in a clean, distraction-free lightbox. Zoom with the on-screen
 buttons, mouse wheel, pinch, or double-click; drag to pan when zoomed in.
 
@@ -33,7 +35,15 @@ The lightbox fits the image to the window, keeps the controls out of the way, an
 and panning without leaving the note.
 
 <p align="center">
-  <img src="screenshots/02-true-fullscreen.png" alt="Fullscreen Image lightbox open over an Obsidian note, with zoom and close controls" width="900">
+  <img src="screenshots/04-lotus-viewer.png" alt="Fullscreen Image lightbox open over an Obsidian note, with zoom and close controls" width="900">
+</p>
+
+### Browse a whole gallery
+
+Move through Simple Gallery photos with arrows, a position counter, captions, and zoom controls.
+
+<p align="center">
+  <img src="screenshots/05-gallery-navigation.png" alt="Move through Simple Gallery photos with arrows, a position counter, captions, and zoom controls." width="900">
 </p>
 
 ### Keep the choice simple
@@ -120,6 +130,18 @@ pull request, run `npm run build` and `npm run lint`.
 If Fullscreen Image improves your workflow, you can support its continued development on
 [Buy Me a Coffee](https://www.buymeacoffee.com/robertfleming).
 
+## Acknowledgements
+
+Robert Fleming directed and reviewed this work. Recent refinements, documentation, and screenshot preparation were developed in collaboration with OpenAI Codex, powered by GPT-6. Thank you to the AI collaborators who helped bring these ideas into a usable community plugin.
+
 ## License
 
 MIT
+
+## Screenshot demo
+
+A [ready-to-use screenshot kit](bootstrap/README.md) includes demo notes and capture instructions.
+
+## Feedback
+
+Bug reports are welcome in this repository’s issue tracker when available. Include your Obsidian and plugin versions, desktop or mobile, a short reproduction, and expected versus actual behavior. Use a small sample note without personal content. This is a spare-time project; fixes and replies have no guaranteed schedule. Contributions and forks are welcome; donations are optional.
