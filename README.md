@@ -1,7 +1,5 @@
 # Fullscreen Image
 
-<a href="https://www.buymeacoffee.com/robertfleming"><img src="assets/buy-me-a-coffee.png" alt="Buy me a coffee" width="217"></a>
-
 Click an image in a note to view it in a clean, distraction-free lightbox. Zoom with the on-screen
 buttons, mouse wheel, pinch, or double-click; drag to pan when zoomed in.
 
@@ -18,6 +16,8 @@ telemetry, or make network requests.
 - Shows the image's caption (its note's real `<figcaption>`, e.g. a Simple Gallery caption) in a translucent bar beneath the photo, in the caption's own typography, updating as you arrow through a gallery. Honors Simple Gallery's caption-visibility choices, including "Fullscreen only" and "Gallery only".
 - Restores keyboard focus when the viewer closes.
 - Works without external services on desktop and mobile.
+
+<a href="https://www.buymeacoffee.com/robertfleming"><img src="assets/buy-me-a-coffee.png" alt="Buy me a coffee" width="217"></a>
 
 ## See it in action
 
