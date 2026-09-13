@@ -27,7 +27,7 @@ const DEFAULT_SETTINGS: FullscreenImageSettings = {
  * a stamp, visibility decides: visible in the note = visible fullscreen.
  */
 function captionElementForImage(img: HTMLImageElement): HTMLElement | null {
-  const figcaption = img.closest('figure')
+  const figcaption = (img.closest('figure') ?? img.closest('.ik-embed'))
     ?.querySelector('figcaption:not(.simple-gallery-caption-empty)');
   if (!(figcaption instanceof HTMLElement)) return null;
   const stamp = figcaption.dataset.fullscreenCaption;

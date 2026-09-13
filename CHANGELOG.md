@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 - 2026-09-12
+
+- Hide the caption bar completely for images without captions.
+- Read Image Kit captions alongside Simple Gallery captions.
+- Link to the companion image plugins.
+
 All notable changes to Fullscreen Image will be documented here.
 
 ## 1.4.0 - 2026-09-02

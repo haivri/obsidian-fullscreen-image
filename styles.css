@@ -191,7 +191,7 @@
   pointer-events: none;
 }
 
-.fsi-caption-hidden {
+.fsi-caption.fsi-caption-hidden {
   display: none;
 }
 

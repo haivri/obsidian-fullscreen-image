@@ -6,6 +6,11 @@ buttons, mouse wheel, pinch, or double-click; drag to pan when zoomed in.
 Fullscreen Image is deliberately small and local-first. It does not modify your notes, collect
 telemetry, or make network requests.
 
+## Companion image plugins
+
+- **[Image Kit](https://github.com/haivri/obsidian-image-kit)** — size, align, and caption individual images from one toolbar.
+- **[Simple Gallery](https://github.com/haivri/obsidian-simple-gallery)** — arrange photos into galleries with captions and sections.
+
 ## Features
 
 - Opens note images in a screen-sized lightbox or, optionally, within the active workspace pane.
